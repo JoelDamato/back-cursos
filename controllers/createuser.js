@@ -61,13 +61,26 @@ const createUser = async (req, res) => {
     const mailOptions = {
       from: '"Erick Gomez Academy" <contacto@erickgomezacademy.com>',
       to: email, // Correo del usuario registrado
-      subject: '¡Bienvenido a Erick Gomez Academy!',
+      subject: `¡Bienvenido a Erick Gomez Academy, ${nombre}! 🎉`,
       html: `
-        <h1>Hola, ${nombre} 👋</h1>
-        <p>Gracias por registrarte en <strong>Erick Gomez Academy</strong>. ¡Nos alegra tenerte con nosotros!</p>
-        <p>Explora nuestros cursos y no dudes en contactarnos si tienes alguna consulta.</p>
-        <br />
-        <p>Saludos,<br />El equipo de Erick Gomez Academy 🚀</p>
+      <div style="text-align: center; margin-bottom: 20px;">
+      <img src="https://i.postimg.cc/NF4pMWsn/cold-smooth-tasty-removebg-preview.png" alt="Erick Gomez Academy Logo" style="max-width: 200px; height: auto;" />
+    </div>
+        <h1>¡Hola ${nombre}! 👋</h1>
+        <p>Primero que todo, quiero darte una gran bienvenida a <strong>Erick Gomez Academy</strong>. 👏🏽 Felicidades por dar este importante paso para aumentar tu nivel como barbero. Has tomado la decisión de invertir en vos mismo y en tu futuro, y eso ya te pone un paso adelante de muchos.</p>
+        <p>Este curso no solo es una oportunidad de aprendizaje, es el comienzo de una nueva etapa donde tu talento se transforma en excelencia. Estamos seguros de que aquí vas a encontrar las herramientas, técnicas y conocimientos necesarios para convertirte en el barbero que otros quieren ser.</p>
+        <p>A continuación, te dejamos los datos de acceso para que puedas ingresar a nuestra plataforma y comenzar esta increíble experiencia:</p>
+        <ul>
+          <li>🔗 <strong>Acceso a la plataforma:</strong> <a href="https://plataforma.erickgomezacademy.com/">Plataforma Erick Gomez</a></li>
+          <li>👤 <strong>Usuario:</strong> ${email}</li>
+          <li>🔒 <strong>Contraseña:</strong> ${password}</li>
+        </ul>
+        <p>👉🏽 <strong>IMPORTANTE:</strong> Guardá esta información para acceder a tus clases y recursos siempre que lo necesites.</p>
+        <p>¿Dudas? No estás solo. Tenés a todo nuestro equipo disponible para ayudarte en lo que necesites.</p>
+        <p>¡Ahora es tu turno de brillar y marcar la diferencia! 💪🏽 Estoy emocionado de acompañarte en este camino de crecimiento y éxito.</p>
+        <p>¡Nos vemos dentro!</p>
+        <p>Un gran saludo,<br />
+        Erick Gomez y el equipo de Erick Gomez Academy 🚀</p>
       `,
     };
 
