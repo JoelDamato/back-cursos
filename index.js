@@ -13,6 +13,7 @@ const commentsRoutes =require('./routes/commentsrout');
 const coursesRoutes =require('./routes/coursesrout');
 const ipRoutes =require('./routes/iprout');
 const clickRoutes = require("./routes/clickrout");
+const webhookRoutes = require('./routes/webhookrout.js'); // 
 
 // Configuración de la app
 const app = express();
@@ -39,6 +40,8 @@ app.use('/api/comments', commentsRoutes);
 app.use('/api/courses', coursesRoutes);
 app.use('/api/ip', ipRoutes);
 app.use("/api", clickRoutes);
+/*-----------*/
+app.use('/webhook', webhookRoutes);
 
 // Iniciar el servidor
 const PORT = process.env.PORT || 5000;
