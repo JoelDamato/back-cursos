@@ -1,7 +1,5 @@
-// Importar mongoose
 const mongoose = require('mongoose');
 
-// Definir el esquema para el usuario
 const UserSchema = new mongoose.Schema({
   nombre: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -13,17 +11,23 @@ const UserSchema = new mongoose.Schema({
       "Master Fade", 
       "Cutting Mastery", 
       "Colorimetria", 
-      "GROWTH BARBER", 
-      "REGALO DE LANZAMIENTO", 
-      "Cupon"
+      "GROWTH BARBER",
+      "Master Fade 3.0", 
     ] 
   },
   rol: {
     type: String,
     enum: ["user", "admin"],
     default: "user",
+  },
+  nivel: {
+    type: String,
+    default: "Principiante" // o podés dejar sin default si querés
+  },
+  imagenPerfil: {
+    type: String, // Espera una URL
+    default: "https://i0.wp.com/mybarbero.com/wp-content/uploads/2024/09/Barberos-a-domicilio-mybarbero.com_.jpg"   // o una URL por defecto si querés mostrar avatar genérico
   }
-}, { timestamps: true }); // Esto agrega createdAt y updatedAt
+}, { timestamps: true });
 
-// Exportar el modelo de usuario
 module.exports = mongoose.model('Users', UserSchema);
