@@ -32,8 +32,8 @@ const crearLinkDePago = async (req, res) => {
         ],
         back_urls: {
           success: successUrl,
-          failure: "https://tupagina.com/failure",
-          pending: "https://tupagina.com/pending"
+          failure: "",
+          pending: ""
         },
         auto_return: "approved"
       }
