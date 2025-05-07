@@ -1,4 +1,5 @@
 const Progreso = require("../models/Progreso");
+const axios = require("axios");
 
 const registrarProgreso = async (req, res) => {
   const { email, cursoId, capituloId, accion } = req.body;
@@ -10,9 +11,13 @@ const registrarProgreso = async (req, res) => {
     });
   }
 
+  const webhookURL = "https://gopitchering.app.n8n.cloud/webhook-test/674ea47c-afe7-4483-ad0c-5df64f23c396";
+
   try {
     const filtro = { email, cursoId, capituloId };
     const existente = await Progreso.findOne(filtro);
+
+    let resultado;
 
     if (existente) {
       let update = {};
@@ -36,10 +41,9 @@ const registrarProgreso = async (req, res) => {
         return res.status(400).json({ error: "Acción no válida", accion });
       }
 
-      const actualizado = await Progreso.findOneAndUpdate(filtro, update, { new: true });
-      return res.status(200).json(actualizado);
+      resultado = await Progreso.findOneAndUpdate(filtro, update, { new: true });
     } else {
-      const nuevo = new Progreso({
+      resultado = new Progreso({
         email,
         cursoId,
         capituloId,
@@ -48,9 +52,26 @@ const registrarProgreso = async (req, res) => {
         estado: accion === "finalizado" ? "completado" : "en_progreso"
       });
 
-      await nuevo.save();
-      return res.status(200).json(nuevo);
+      await resultado.save();
     }
+
+    // Primero responder al cliente
+    res.status(200).json(resultado);
+
+    // Luego enviar al webhook sin afectar al flujo
+    axios.post(webhookURL, {
+      email,
+      cursoId,
+      capituloId,
+      accion,
+      estado: resultado.estado,
+      fechaInicio: resultado.fechaInicio,
+      fechaFin: resultado.fechaFin,
+      updatedAt: resultado.updatedAt
+    }).catch((webhookError) => {
+      console.error("Error al enviar al webhook (no afecta al flujo):", webhookError.message);
+    });
+
   } catch (error) {
     console.error("Error al registrar progreso:", error);
 

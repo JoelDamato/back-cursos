@@ -6,6 +6,7 @@ const obtenerTodosLosClicks = require("../controllers/getclick.js");
 const registrarProgreso = require("../controllers/progrescontroller.js");
 const obtenerProgresoPorUsuario = require("../controllers/getprogres.js");
 const crearLinkDePago = require("../controllers/paymp.js");
+const { createOnboarding, checkIfCompleted } = require("../controllers/onboardingController");
 
 
 // Clicks
@@ -16,5 +17,11 @@ router.get("/getclicks", obtenerTodosLosClicks);
 router.post("/progreso", registrarProgreso);
 router.get("/progresoget", obtenerProgresoPorUsuario);
 router.post("/generate-link", crearLinkDePago);
+
+//form onboarding
+router.post("/onboarding", createOnboarding);
+router.get("/onboarding", checkIfCompleted);
+
+
 
 module.exports = router;
