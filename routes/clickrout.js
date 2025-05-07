@@ -18,7 +18,7 @@ router.post("/progreso", registrarProgreso);
 router.get("/progresoget", obtenerProgresoPorUsuario);
 router.post("/generate-link", crearLinkDePago);
 
-//form onboarding
+//form onboardin
 router.post("/onboarding", createOnboarding);
 router.get("/onboarding", checkIfCompleted);
 
