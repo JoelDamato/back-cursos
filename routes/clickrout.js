@@ -6,7 +6,7 @@ const obtenerTodosLosClicks = require("../controllers/getclick.js");
 const registrarProgreso = require("../controllers/progrescontroller.js");
 const obtenerProgresoPorUsuario = require("../controllers/getprogres.js");
 const crearLinkDePago = require("../controllers/paymp.js");
-const { createOnboarding, checkIfCompleted } = require("../controllers/onboardingController");
+const { createOnboarding, checkIfCompleted } = require("../controllers/Onboardingcontroller.js");
 
 
 // Clicks
