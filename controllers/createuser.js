@@ -1,106 +1,130 @@
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
-const User = require('../models/Users'); // Importar el modelo de usuario
+const User = require('../models/Users');
 
-const createUser = async (req, res) => {
+const createUserAuto = async (req, res) => {
   try {
-    console.log('Cuerpo de la solicitud recibido:', req.body);
+    console.log('📥 Cuerpo recibido:', req.body);
 
     const { nombre, email, password, cursos, rol } = req.body;
 
-    // Validaciones de campos
     if (!nombre || !email || !password) {
       return res.status(400).json({ message: 'Nombre, email y contraseña son requeridos' });
     }
 
-    // Validar el formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: 'El formato del email no es válido' });
     }
 
-    // Validar longitud de la contraseña
     if (password.length < 6) {
       return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' });
     }
 
-    // Verificar si el usuario ya existe
+    const cursoNuevo = "Master Fade 3.0";
+
+    const CURSOS_VALIDOS = [
+      "Focus",
+      "Master Fade",
+      "Cutting Mastery",
+      "Colorimetria",
+      "GROWTH BARBER",
+      "Master Fade 3.0"
+    ];
+
+    const cursosFiltrados = (cursos || []).filter(c => CURSOS_VALIDOS.includes(c));
+
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
-      return res.status(400).json({ message: 'El usuario ya está registrado' });
+      console.log("👤 Usuario existente encontrado:", existingUser.email);
+      console.log("📚 Cursos actuales:", existingUser.cursos);
+
+      if (!existingUser.cursos.includes(cursoNuevo)) {
+        existingUser.cursos.push(cursoNuevo);
+
+        if (!existingUser.fechaAsignacionMasterFade30) {
+          existingUser.fechaAsignacionMasterFade30 = new Date();
+          console.log("✅ Se asignó fechaAsignacionMasterFade30 a usuario existente.");
+        }
+
+        // Eliminar cursos inválidos
+        existingUser.cursos = existingUser.cursos.filter(c => CURSOS_VALIDOS.includes(c));
+
+        await existingUser.save();
+        console.log("💾 Usuario actualizado:", existingUser.toObject());
+
+        return res.status(200).json({
+          message: 'Curso agregado al usuario existente. Ya tenés una cuenta activa. Iniciá sesión con tu contraseña habitual o solicitá un restablecimiento si no la recordás.'
+        });
+      } else {
+        return res.status(200).json({
+          message: 'Ya tenés una cuenta activa. Iniciá sesión con tu contraseña habitual o solicitá un restablecimiento si no la recordás.'
+        });
+      }
     }
 
-    // Encriptar la contraseña
+    // Crear nuevo usuario
     const hashedPassword = await bcrypt.hash(password, 10);
+    const cursosFinal = cursosFiltrados.length > 0 ? cursosFiltrados : [cursoNuevo];
+    const asignaMasterFade30 = cursosFinal.includes(cursoNuevo);
 
-    // Crear un nuevo usuario
     const user = new User({
       nombre,
       email,
       password: hashedPassword,
-      cursos: cursos || [],
+      cursos: cursosFinal,
       rol: rol || 'user',
+      fechaAsignacionMasterFade30: asignaMasterFade30 ? new Date() : undefined,
     });
+
+    console.log("📦 Usuario a guardar:", user.toObject());
 
     await user.save();
+    console.log("✅ Usuario nuevo creado con fecha de asignación:", user.fechaAsignacionMasterFade30);
 
-    // Configurar el transporte de Nodemailer con SMTP GoDaddy
-    const transporter = nodemailer.createTransport({
-      host: 'smtpout.secureserver.net', // Servidor SMTP de GoDaddy
-      port: 587, // Puerto STARTTLS (usar 465 si es SSL)
-      secure: false, // false para STARTTLS, true para SSL
-      auth: {
-        user: 'contacto@erickgomezacademy.com', // Tu correo
-        pass: 'Gopitchering2024', // Tu contraseña
-      },
-      debug: true, // Mostrar logs de depuración
-      logger: true, // Habilitar logs detallados
-    });
+    // Enviar email
+    try {
+      const transporter = nodemailer.createTransport({
+        host: 'smtpout.secureserver.net',
+        port: 587,
+        secure: false,
+        auth: {
+          user: 'contacto@erickgomezacademy.com',
+          pass: 'Gopitchering2024',
+        },
+      });
 
-    // Configurar las opciones del correo
-    const mailOptions = {
-      from: '"Erick Gomez Academy" <contacto@erickgomezacademy.com>',
-      to: email, // Correo del usuario registrado
-      subject: `¡Bienvenido a Erick Gomez Academy, ${nombre}! 🎉`,
-      html: `
-      <div style="text-align: center; margin-bottom: 20px;">
-      <img src="https://i.postimg.cc/NF4pMWsn/cold-smooth-tasty-removebg-preview.png" alt="Erick Gomez Academy Logo" style="max-width: 200px; height: auto;" />
-    </div>
-        <h1>¡Hola ${nombre}! 👋</h1>
-        <p>Primero que todo, quiero darte una gran bienvenida a <strong>Erick Gomez Academy</strong>. 👏🏽 Felicidades por dar este importante paso para aumentar tu nivel como barbero. Has tomado la decisión de invertir en vos mismo y en tu futuro, y eso ya te pone un paso adelante de muchos.</p>
-        <p>Este curso no solo es una oportunidad de aprendizaje, es el comienzo de una nueva etapa donde tu talento se transforma en excelencia. Estamos seguros de que aquí vas a encontrar las herramientas, técnicas y conocimientos necesarios para convertirte en el barbero que otros quieren ser.</p>
-        <p>A continuación, te dejamos los datos de acceso para que puedas ingresar a nuestra plataforma y comenzar esta increíble experiencia:</p>
-        <ul>
-          <li>🔗 <strong>Acceso a la plataforma:</strong> <a href="https://plataforma.erickgomezacademy.com/">Plataforma Erick Gomez</a></li>
-          <li>👤 <strong>Usuario:</strong> ${email}</li>
-          <li>🔒 <strong>Contraseña:</strong> ${password}</li>
-        </ul>
-        <p>👉🏽 <strong>IMPORTANTE:</strong> Guardá esta información para acceder a tus clases y recursos siempre que lo necesites.</p>
-        <p>¿Dudas? No estás solo. Tenés a todo nuestro equipo disponible para ayudarte en lo que necesites.</p>
-        <p>¡Ahora es tu turno de brillar y marcar la diferencia! 💪🏽 Estoy emocionado de acompañarte en este camino de crecimiento y éxito.</p>
-        <p>¡Nos vemos dentro!</p>
-        <p>Un gran saludo,<br />
-        Erick Gomez y el equipo de Erick Gomez Academy 🚀</p>
-      `,
-    };
+      const mailOptions = {
+        from: '"Erick Gomez Academy" <contacto@erickgomezacademy.com>',
+        to: email,
+        subject: `¡Bienvenido a Erick Gomez Academy, ${nombre}! 🎉`,
+        html: `
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://i.postimg.cc/NF4pMWsn/cold-smooth-tasty-removebg-preview.png" style="max-width: 200px;" />
+          </div>
+          <h1>¡Hola ${nombre}! 👋</h1>
+          <p>Bienvenido a <strong>Erick Gomez Academy</strong>.</p>
+          <p>📘 Curso asignado: <strong>${cursoNuevo}</strong></p>
+          <p>🔗 <a href="https://plataforma.erickgomezacademy.com/">Ir a la plataforma</a></p>
+          <ul>
+            <li>👤 Usuario: ${email}</li>
+          </ul>
+          <p>Guardá estos datos para acceder a tus clases.</p>
+        `
+      };
 
-    // Enviar el correo de bienvenida
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        console.error('Error al enviar el correo:', err);
-        return res
-          .status(500)
-          .json({ message: 'Usuario creado, pero hubo un error al enviar el correo.' });
-      }
-      console.log('Correo enviado con éxito:', info.messageId);
-      return res
-        .status(201)
-        .json({ message: 'Usuario creado exitosamente. Se envió un correo de bienvenida.' });
-    });
+      await transporter.sendMail(mailOptions);
+    } catch (mailErr) {
+      console.warn('⚠️ Error al enviar el correo (no crítico):', mailErr.message);
+    }
+
+    return res.status(201).json({ message: 'Usuario creado exitosamente.' });
+
   } catch (error) {
-    console.error('Error al crear el usuario o enviar el correo:', error);
+    console.error('❌ Error general al crear usuario:', error);
     res.status(500).json({ message: 'Error en el servidor' });
   }
 };
 
-module.exports = createUser;
+module.exports = createUserAuto;

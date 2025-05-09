@@ -19,36 +19,57 @@ const createUserAuto = async (req, res) => {
       return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' });
     }
 
+    const cursoNuevo = "Master Fade 3.0";
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      const cursoNuevo = "Master Fade 3.0";
       if (!existingUser.cursos.includes(cursoNuevo)) {
         existingUser.cursos.push(cursoNuevo);
+
+        if (!existingUser.fechaAsignacionMasterFade30) {
+          existingUser.fechaAsignacionMasterFade30 = new Date();
+          console.log("✅ Se asignó fechaAsignacionMasterFade30 a usuario existente.");
+        }
+
         await existingUser.save();
+
+        // ✅ Podés agregar envío de email acá si querés notificar que se agregó el curso
+
         return res.status(200).json({
           message: 'Curso agregado al usuario existente. Ya tenés una cuenta activa. Iniciá sesión con tu contraseña habitual o solicitá un restablecimiento si no la recordás.'
         });
-      } else {
-        return res.status(200).json({
-          message: 'Ya tenés una cuenta activa. Iniciá sesión con tu contraseña habitual o solicitá un restablecimiento si no la recordás.'
-        });
       }
+
+      return res.status(200).json({
+        message: 'Ya tenés una cuenta activa. Iniciá sesión con tu contraseña habitual o solicitá un restablecimiento si no la recordás.'
+      });
     }
 
+    // Crear nuevo usuario si no existía
     const hashedPassword = await bcrypt.hash(password, 10);
+    const cursosFinal = cursos && cursos.length > 0 ? cursos : [cursoNuevo];
+    const asignaMasterFade30 = cursosFinal.includes(cursoNuevo);
 
     const user = new User({
       nombre,
       email,
       password: hashedPassword,
-      cursos: cursos || ["Master Fade 3.0"],
+      cursos: cursosFinal,
       rol: rol || 'user',
+      fechaAsignacionMasterFade30: asignaMasterFade30 ? new Date() : undefined,
     });
 
-    await user.save();
+    try {
+      await user.save();
+      console.log("✅ Usuario nuevo creado con fecha de asignación:", user.fechaAsignacionMasterFade30);
+    } catch (err) {
+      if (err.code === 11000) {
+        return res.status(409).json({ message: 'Ya existe una cuenta con este email.' });
+      }
+      throw err;
+    }
 
-    // Enviar email (no usamos return si falla)
+    // Enviar email de bienvenida
     try {
       const transporter = nodemailer.createTransport({
         host: 'smtpout.secureserver.net',
@@ -70,7 +91,7 @@ const createUserAuto = async (req, res) => {
           </div>
           <h1>¡Hola ${nombre}! 👋</h1>
           <p>Bienvenido a <strong>Erick Gomez Academy</strong>.</p>
-          <p>📘 Curso asignado: <strong>Master Fade 3.0</strong></p>
+          <p>📘 Curso asignado: <strong>${cursoNuevo}</strong></p>
           <p>🔗 <a href="https://plataforma.erickgomezacademy.com/">Ir a la plataforma</a></p>
           <ul>
             <li>👤 Usuario: ${email}</li>
@@ -82,10 +103,8 @@ const createUserAuto = async (req, res) => {
       await transporter.sendMail(mailOptions);
     } catch (mailErr) {
       console.warn('⚠️ Error al enviar el correo (no crítico):', mailErr.message);
-      // No hacemos return para no cortar la respuesta principal
     }
 
-    // SIEMPRE respondemos éxito al frontend si el usuario se creó bien
     return res.status(201).json({ message: 'Usuario creado exitosamente.' });
 
   } catch (error) {
