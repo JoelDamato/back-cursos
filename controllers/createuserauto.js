@@ -33,8 +33,6 @@ const createUserAuto = async (req, res) => {
 
         await existingUser.save();
 
-        // ✅ Podés agregar envío de email acá si querés notificar que se agregó el curso
-
         return res.status(200).json({
           message: 'Curso agregado al usuario existente. Ya tenés una cuenta activa. Iniciá sesión con tu contraseña habitual o solicitá un restablecimiento si no la recordás.'
         });
@@ -45,7 +43,7 @@ const createUserAuto = async (req, res) => {
       });
     }
 
-    // Crear nuevo usuario si no existía
+    // Crear usuario nuevo
     const hashedPassword = await bcrypt.hash(password, 10);
     const cursosFinal = cursos && cursos.length > 0 ? cursos : [cursoNuevo];
     const asignaMasterFade30 = cursosFinal.includes(cursoNuevo);
@@ -69,7 +67,7 @@ const createUserAuto = async (req, res) => {
       throw err;
     }
 
-    // Enviar email de bienvenida
+    // Enviar email
     try {
       const transporter = nodemailer.createTransport({
         host: 'smtpout.secureserver.net',
@@ -84,19 +82,29 @@ const createUserAuto = async (req, res) => {
       const mailOptions = {
         from: '"Erick Gomez Academy" <contacto@erickgomezacademy.com>',
         to: email,
-        subject: `¡Bienvenido a Erick Gomez Academy, ${nombre}! 🎉`,
+        subject: `👋 ¡Bienvenido ${nombre}! Accedé a tu curso Master Fade 3.0`,
         html: `
-          <div style="text-align: center; margin-bottom: 20px;">
-            <img src="https://i.postimg.cc/NF4pMWsn/cold-smooth-tasty-removebg-preview.png" style="max-width: 200px;" />
+          <div style="text-align: center; font-family: Arial, sans-serif; color: #333;">
+            <img src="https://www.erickgomezacademy.com/erickgomez.png" alt="Logo" style="max-width: 150px; margin-bottom: 20px;" />
+            <h1 style="color: #000;">¡Bienvenido a la plataforma oficial de barberos!</h1>
+            <p style="font-size: 16px; line-height: 1.5;">
+              Te damos la bienvenida a <strong>Erick Gómez Academy</strong>, donde empieza tu transformación como barbero profesional.
+              Ya tenés acceso al curso <strong>Master Fade 3.0</strong>.
+            </p>
+            <p style="font-size: 15px; margin-top: 20px;">
+              Ingresá con los siguientes datos:
+            </p>
+            <ul style="list-style: none; padding: 0; font-size: 15px;">
+              <li>👤 <strong>Usuario:</strong> ${email}</li>
+              <li>🔑 <strong>Contraseña:</strong> ${password}</li>
+            </ul>
+            <a href="https://plataforma.erickgomezacademy.com/" style="display: inline-block; margin-top: 20px; padding: 12px 24px; background-color: #00cc66; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">
+              Iniciar sesión en la plataforma
+            </a>
+            <p style="font-size: 13px; margin-top: 20px; color: #888;">
+              Guardá esta información en un lugar seguro. Si tenés algún problema para acceder, escribinos al soporte.
+            </p>
           </div>
-          <h1>¡Hola ${nombre}! 👋</h1>
-          <p>Bienvenido a <strong>Erick Gomez Academy</strong>.</p>
-          <p>📘 Curso asignado: <strong>${cursoNuevo}</strong></p>
-          <p>🔗 <a href="https://plataforma.erickgomezacademy.com/">Ir a la plataforma</a></p>
-          <ul>
-            <li>👤 Usuario: ${email}</li>
-          </ul>
-          <p>Guardá estos datos para acceder a tus clases.</p>
         `
       };
 

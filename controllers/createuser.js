@@ -1,11 +1,10 @@
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
+const axios = require('axios');
 const User = require('../models/Users');
 
 const createUserAuto = async (req, res) => {
   try {
-    console.log('📥 Cuerpo recibido:', req.body);
-
     const { nombre, email, password, cursos, rol } = req.body;
 
     if (!nombre || !email || !password) {
@@ -22,24 +21,9 @@ const createUserAuto = async (req, res) => {
     }
 
     const cursoNuevo = "Master Fade 3.0";
-
-    const CURSOS_VALIDOS = [
-      "Focus",
-      "Master Fade",
-      "Cutting Mastery",
-      "Colorimetria",
-      "GROWTH BARBER",
-      "Master Fade 3.0"
-    ];
-
-    const cursosFiltrados = (cursos || []).filter(c => CURSOS_VALIDOS.includes(c));
-
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      console.log("👤 Usuario existente encontrado:", existingUser.email);
-      console.log("📚 Cursos actuales:", existingUser.cursos);
-
       if (!existingUser.cursos.includes(cursoNuevo)) {
         existingUser.cursos.push(cursoNuevo);
 
@@ -48,25 +32,29 @@ const createUserAuto = async (req, res) => {
           console.log("✅ Se asignó fechaAsignacionMasterFade30 a usuario existente.");
         }
 
-        // Eliminar cursos inválidos
-        existingUser.cursos = existingUser.cursos.filter(c => CURSOS_VALIDOS.includes(c));
-
         await existingUser.save();
-        console.log("💾 Usuario actualizado:", existingUser.toObject());
+
+        // Webhook no bloqueante
+        axios.post('https://gopitchering.app.n8n.cloud/webhook-test/882ebd94-8cb0-47b2-a5ae-05f7f8cc9ac5', {
+          tipo: 'actualizacion',
+          nombre,
+          email,
+          cursos: existingUser.cursos,
+          fechaAsignacionMasterFade30: existingUser.fechaAsignacionMasterFade30
+        }).catch(err => console.warn("⚠️ Error webhook:", err.message));
 
         return res.status(200).json({
           message: 'Curso agregado al usuario existente. Ya tenés una cuenta activa. Iniciá sesión con tu contraseña habitual o solicitá un restablecimiento si no la recordás.'
         });
-      } else {
-        return res.status(200).json({
-          message: 'Ya tenés una cuenta activa. Iniciá sesión con tu contraseña habitual o solicitá un restablecimiento si no la recordás.'
-        });
       }
+
+      return res.status(200).json({
+        message: 'Ya tenés una cuenta activa. Iniciá sesión con tu contraseña habitual o solicitá un restablecimiento si no la recordás.'
+      });
     }
 
-    // Crear nuevo usuario
     const hashedPassword = await bcrypt.hash(password, 10);
-    const cursosFinal = cursosFiltrados.length > 0 ? cursosFiltrados : [cursoNuevo];
+    const cursosFinal = cursos && cursos.length > 0 ? cursos : [cursoNuevo];
     const asignaMasterFade30 = cursosFinal.includes(cursoNuevo);
 
     const user = new User({
@@ -78,12 +66,26 @@ const createUserAuto = async (req, res) => {
       fechaAsignacionMasterFade30: asignaMasterFade30 ? new Date() : undefined,
     });
 
-    console.log("📦 Usuario a guardar:", user.toObject());
+    try {
+      await user.save();
+      console.log("✅ Usuario nuevo creado con fecha de asignación:", user.fechaAsignacionMasterFade30);
+    } catch (err) {
+      if (err.code === 11000) {
+        return res.status(409).json({ message: 'Ya existe una cuenta con este email.' });
+      }
+      throw err;
+    }
 
-    await user.save();
-    console.log("✅ Usuario nuevo creado con fecha de asignación:", user.fechaAsignacionMasterFade30);
+    // Webhook no bloqueante
+    axios.post('https://gopitchering.app.n8n.cloud/webhook-test/882ebd94-8cb0-47b2-a5ae-05f7f8cc9ac5', {
+      tipo: 'nuevo',
+      nombre,
+      email,
+      cursos: user.cursos,
+      fechaAsignacionMasterFade30: user.fechaAsignacionMasterFade30
+    }).catch(err => console.warn("⚠️ Error webhook:", err.message));
 
-    // Enviar email
+    // Enviar email de bienvenida
     try {
       const transporter = nodemailer.createTransport({
         host: 'smtpout.secureserver.net',
@@ -123,7 +125,7 @@ const createUserAuto = async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error general al crear usuario:', error);
-    res.status(500).json({ message: 'Error en el servidor' });
+    return res.status(500).json({ message: 'Error en el servidor' });
   }
 };
 
