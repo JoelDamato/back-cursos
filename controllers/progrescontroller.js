@@ -12,7 +12,7 @@ const registrarProgreso = async (req, res) => {
     "focus": "Focus",
     "cutting-mastery": "Cutting Mastery",
     "colorimetria": "Colorimetria",
-    "master-fade-3-0": "Master Fade 3.0",
+    "master-fade-3.0": "Master Fade 3.0",
     "regalo-de-lanzamiento": "REGALO DE LANZAMIENTO"
   }[cursoId] || cursoId;
   
