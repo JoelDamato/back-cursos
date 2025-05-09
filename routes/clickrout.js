@@ -7,6 +7,7 @@ const registrarProgreso = require("../controllers/progrescontroller.js");
 const obtenerProgresoPorUsuario = require("../controllers/getprogres.js");
 const crearLinkDePago = require("../controllers/paymp.js");
 const { createOnboarding, checkIfCompleted } = require("../controllers/Onboardingcontroller.js");
+const { guardarDisparo, obtenerDisparos } = require('../controllers/disparosController');
 
 
 // Clicks
@@ -21,6 +22,10 @@ router.post("/generate-link", crearLinkDePago);
 //form onboardin
 router.post("/onboarding", createOnboarding);
 router.get("/onboarding", checkIfCompleted);
+
+
+router.post('/disparos', guardarDisparo);
+router.get('/disparos', obtenerDisparos); // opcional
 
 
 
