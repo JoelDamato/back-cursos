@@ -5,7 +5,6 @@ const fs = require('fs');
 const path = require('path');
 
 const updateImagenPerfil = async (req, res) => {
-
   const { email } = req.body;
   const file = req.file;
 
@@ -16,23 +15,32 @@ const updateImagenPerfil = async (req, res) => {
   try {
     // Subir imagen a Cloudinary
     const result = await cloudinary.uploader.upload(file.path, {
-      folder: 'perfiles-barberos', // Opcional: carpeta en Cloudinary
+      folder: 'perfiles-barberos',
     });
 
     // Borra el archivo local después de subirlo
     fs.unlinkSync(file.path);
 
-    const user = await Users.findOneAndUpdate(
-      { email },
-      { imagenPerfil: result.secure_url },
-      { new: true }
-    );
+    // Buscamos al usuario para modificarle imagen y ebook
+    const user = await Users.findOne({ email });
 
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado.' });
     }
-console.log('🔄 Usuario actualizado:', user);
-    return res.status(200).json({ message: 'Imagen actualizada correctamente.', user });
+
+    // Actualizamos imagenPerfil
+    user.imagenPerfil = result.secure_url;
+
+    // Si no tiene ebook, se lo asignamos
+    if (!user.ebook) {
+      user.ebook = true;
+    }
+
+    // Guardamos cambios
+    await user.save();
+
+    console.log('🔄 Usuario actualizado:', user);
+    return res.status(200).json({ message: 'Imagen actualizada y ebook asignado correctamente.', user });
   } catch (error) {
     console.error('Error al actualizar imagen:', error);
     return res.status(500).json({ message: 'Error interno del servidor.' });

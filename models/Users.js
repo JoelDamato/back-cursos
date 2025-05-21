@@ -76,6 +76,11 @@ const UserSchema = new mongoose.Schema({
   Csm: {
     type: String,
     default: "texto"
+  },
+
+  ebook:{
+    type: Boolean,
+    default: false
   }
 
 }, { timestamps: true });
