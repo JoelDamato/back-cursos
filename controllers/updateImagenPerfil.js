@@ -1,26 +1,30 @@
 // controllers/updateImagenPerfil.js
 const Users = require('../models/Users');
+const cloudinary = require('../middleware/cloudinary');
+const fs = require('fs');
 const path = require('path');
 
 const updateImagenPerfil = async (req, res) => {
-  console.log('HOLAAAAAAAAAAAAAAAAAA');
-  console.log('BODY:', req.body);
-console.log('FILE:', req.file);
+
   const { email } = req.body;
   const file = req.file;
 
   if (!email || !file) {
     return res.status(400).json({ message: 'Faltan datos requeridos: email o archivo.' });
   }
-console.log(email, file)
+
   try {
-    // Construir la URL accesible de la imagen (ruta relativa o completa)
-    const imagePath = `/uploads/${file.filename}`;
-console.log(email, file)
+    // Subir imagen a Cloudinary
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: 'perfiles-barberos', // Opcional: carpeta en Cloudinary
+    });
+
+    // Borra el archivo local después de subirlo
+    fs.unlinkSync(file.path);
 
     const user = await Users.findOneAndUpdate(
       { email },
-      { imagenPerfil: imagePath },
+      { imagenPerfil: result.secure_url },
       { new: true }
     );
 
