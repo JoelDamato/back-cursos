@@ -19,6 +19,7 @@ const webhookRoutes = require('./routes/webhookrout.js'); //
 const app = express();
 app.use(cors()); // Permitir acceso desde cualquier origen (CORS liberado)
 app.use(express.json());
+app.use('/uploads', express.static('uploads')); // ✅
 
 // Conectar con MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
