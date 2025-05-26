@@ -1,4 +1,3 @@
-// controllers/getUserDataByEmail.js
 const User = require('../models/Users');
 
 const getUserDataByEmail = async (req, res) => {
