@@ -18,9 +18,17 @@ const commentSchema = new mongoose.Schema({
     type: String, // Identificación del usuario mediante correo electrónico
     required: true,
   },
+    userName: {
+    type: String, // Identificación del usuario mediante correo electrónico
+    required: true,
+  },
   content: {
     type: String, // Contenido del comentario
     required: true,
+  },
+  imagenPerfil: {
+    type: String, // ✅ Nueva propiedad
+    required: false,
   },
   createdAt: {
     type: Date,

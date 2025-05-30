@@ -18,6 +18,7 @@ const webhookRoutes = require('./routes/webhookrout.js');
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads')); // ✅
 
 // 🔍 Debug temporal
 console.log("URI:", process.env.MONGODB_URI);

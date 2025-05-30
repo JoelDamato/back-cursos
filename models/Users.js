@@ -5,7 +5,6 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   telefono: { type: String }, // ✅ Nuevo campo para teléfono
-
   cursos: { 
     type: [String], 
     enum: [
@@ -52,7 +51,6 @@ const UserSchema = new mongoose.Schema({
       ]
     }
   ],
-  
   nivel: {
     type: String,
     default: "Principiante"
@@ -62,7 +60,6 @@ const UserSchema = new mongoose.Schema({
     default: "https://i0.wp.com/mybarbero.com/wp-content/uploads/2024/09/Barberos-a-domicilio-mybarbero.com_.jpg"
   },
   fechaAsignacionMasterFade30: { type: Date },
-
   // ✅ Nuevos campos para formulario
   completoForm: {
     type: Boolean,
@@ -71,13 +68,11 @@ const UserSchema = new mongoose.Schema({
   fechaFormCompletado: {
     type: Date,
   },
-
   // ✅ Nuevo campo automático
   Csm: {
     type: String,
     default: "texto"
-  }
-
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Users', UserSchema);
