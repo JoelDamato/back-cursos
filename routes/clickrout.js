@@ -9,6 +9,7 @@ const crearLinkDePago = require("../controllers/paymp.js");
 const { createOnboarding, checkIfCompleted } = require("../controllers/Onboardingcontroller.js");
 const { guardarDisparo, obtenerDisparos } = require('../controllers/disparosController');
 const sendResetPasswordLink = require('../controllers/resetpassword.js');
+const crearLinkStripe = require("../controllers/paystripe.js"); 
 
 
 
@@ -20,6 +21,8 @@ router.get("/getclicks", obtenerTodosLosClicks);
 router.post("/progreso", registrarProgreso);
 router.get("/progresoget", obtenerProgresoPorUsuario);
 router.post("/generate-link", crearLinkDePago);
+router.post("/stripe-link", crearLinkStripe);
+
 
 //form onboardin
 router.post("/onboarding", createOnboarding);
