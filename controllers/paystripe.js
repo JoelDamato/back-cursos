@@ -1,5 +1,4 @@
-const stripe = require('stripe')('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');
-
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const crearLinkDePago = async (req, res) => {
   const { title, price, nombre, email } = req.body;
 
