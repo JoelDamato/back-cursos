@@ -1,4 +1,5 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 const crearLinkDePago = async (req, res) => {
   const { title, price, nombre, email } = req.body;
 
@@ -13,12 +14,10 @@ const crearLinkDePago = async (req, res) => {
     const successUrl = `https://www.erickgomezacademy.com/success?email=${encodedEmail}&nombre=${encodedNombre}`;
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      customer_email: email,
       line_items: [
         {
           price_data: {
-            currency: 'ars', // o 'usd' si facturás en dólares
+            currency: 'ars', // Cambiá a 'usd' si querés cobrar en dólares
             product_data: {
               name: title,
               description: 'Pago generado desde el sitio',
@@ -30,7 +29,10 @@ const crearLinkDePago = async (req, res) => {
       ],
       mode: 'payment',
       success_url: successUrl,
-      cancel_url: 'https://www.erickgomezacademy.com/cancelado',
+      cancel_url: 'https://www.erickgomezacademy.com/',
+      automatic_payment_methods: {
+        enabled: true,
+      },
     });
 
     return res.status(200).json({ link: session.url });
